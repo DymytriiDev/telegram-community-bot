@@ -50,10 +50,26 @@ function setupAdminHandlers(bot) {
         messageOptions.message_thread_id = topicId;
       }
 
+      // First, send the event message
       const sentMessage = await ctx.telegram.sendMessage(
         groupChatId,
         formatEvent(updatedEvent),
         messageOptions
+      );
+
+      // Then, send a poll asking if people will attend
+      const pollOptions = { is_anonymous: false };
+
+      // Add message thread if topic ID is provided
+      if (topicId) {
+        pollOptions.message_thread_id = topicId;
+      }
+
+      await ctx.telegram.sendPoll(
+        groupChatId,
+        `Будеш на ${updatedEvent.title}?`,
+        ["Так! ✅", "Можливо 🤔"],
+        pollOptions
       );
 
       // Store message ID for reference

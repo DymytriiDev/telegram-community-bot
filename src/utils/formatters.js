@@ -19,9 +19,16 @@ function formatEvent(event) {
   let locationText = "Локація не визначена";
   if (event.location) {
     if (event.location.address) {
-      locationText = event.location.address;
+      // Check if the address contains a URL and format it as a clickable link
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      locationText = event.location.address.replace(
+        urlRegex,
+        (url) => `<a href="${url}">тиць</a>`
+      );
     } else if (event.location.latitude && event.location.longitude) {
-      locationText = `Координати: ${event.location.latitude}, ${event.location.longitude}`;
+      // Create a Google Maps link for coordinates
+      const mapsUrl = `https://maps.google.com/?q=${event.location.latitude},${event.location.longitude}`;
+      locationText = `Координати: ${event.location.latitude}, ${event.location.longitude} (<a href="${mapsUrl}">тиць</a>)`;
     }
   }
 
