@@ -1,14 +1,14 @@
-const { Scenes, Markup } = require('telegraf');
-const { message } = require('telegraf/filters');
-const moment = require('moment');
+const { Scenes, Markup } = require("telegraf");
+const { message } = require("telegraf/filters");
+const moment = require("moment");
 
-const { createEvent } = require('../models/event');
-const { getOrCreateUser, incrementUserEventCount } = require('../models/user');
-const { formatEvent } = require('../utils/formatters');
+const { createEvent } = require("../models/event");
+const { getOrCreateUser, incrementUserEventCount } = require("../models/user");
+const { formatEvent } = require("../utils/formatters");
 
 // Create a scene for event creation
 const createEventScene = new Scenes.WizardScene(
-  'create-event',
+  "create-event",
   // Step 1: Ask for event title (what)
   async (ctx) => {
     await ctx.reply("Давай створимо нову подію! 🎉\n\n" + "Що організовуємо?");
@@ -20,26 +20,45 @@ const createEventScene = new Scenes.WizardScene(
   async (ctx) => {
     // Check if we have text
     if (!ctx.message || !ctx.message.text) {
-      await ctx.reply("Потрібна назва події.");
+      await ctx.reply(
+        "Потрібна назва події.",
+        Markup.inlineKeyboard([
+          Markup.button.callback(
+            "або.. 🔄 Почати спочатку",
+            "restart_creation"
+          ),
+        ])
+      );
       return;
     }
-    
+
     // Save the title
     ctx.wizard.state.eventData.title = ctx.message.text;
 
     await ctx.reply(
       "Супер! Коли?\n\n" +
-        "Введи дату та час у форматі: DD.MM.YYYY, HH:MM\n" +
-        "Наприклад: 15.08.2025, 18:30"
+        "Введи дату та час, наприклад:\n" +
+        "<b>15.08.2025, 18:30</b>",
+      {
+        parse_mode: "HTML",
+      }
     );
     return ctx.wizard.next();
   },
-  
+
   // Step 3: Receive date and ask for location (where)
   async (ctx) => {
     // Check if we have text
     if (!ctx.message || !ctx.message.text) {
-      await ctx.reply("Введи дату та час у форматі: DD.MM.YYYY, HH:MM");
+      await ctx.reply(
+        "Введи дату та час у форматі: DD.MM.YYYY, HH:MM",
+        Markup.inlineKeyboard([
+          Markup.button.callback(
+            "або.. 🔄 Почати спочатку",
+            "restart_creation"
+          ),
+        ])
+      );
       return;
     }
 
@@ -51,14 +70,44 @@ const createEventScene = new Scenes.WizardScene(
       await ctx.reply(
         "Невірний формат дати та часу.\n" +
           "Введи дату та час у форматі: DD.MM.YYYY, HH:MM\n" +
-          "Наприклад: 15.08.2025, 18:30"
+          "Наприклад: <b>15.08.2025, 18:30</b>",
+        {
+          parse_mode: "HTML",
+          ...Markup.inlineKeyboard([
+            Markup.button.callback(
+              "або.. 🔄 Почати спочатку",
+              "restart_creation"
+            ),
+          ]),
+        }
+      );
+      return;
+    }
+
+    // Check if date is at least 30 minutes in the future
+    const now = moment();
+    const minAllowedTime = now.clone().add(30, "minutes");
+
+    if (date.isBefore(minAllowedTime)) {
+      await ctx.reply(
+        "Подія має бути запланована щонайменше на 30 хвилин вперед від поточного часу.\n" +
+          `Поточний час: ${now.format("DD.MM.YYYY, HH:mm")}\n` +
+          `Мінімально допустимий час: ${minAllowedTime.format(
+            "DD.MM.YYYY, HH:mm"
+          )}`,
+        Markup.inlineKeyboard([
+          Markup.button.callback(
+            "або.. 🔄 Почати спочатку",
+            "restart_creation"
+          ),
+        ])
       );
       return;
     }
 
     // Save the date
     ctx.wizard.state.eventData.date = date.toDate();
-    
+
     await ctx.reply(
       "Де відбувається?\n\n" +
         "Напиши адресу, або скинь посилання google maps, або відправ локацію.",
@@ -85,7 +134,13 @@ const createEventScene = new Scenes.WizardScene(
       };
     } else {
       await ctx.reply(
-        "Введи адресу, або скинь посилання google maps, або відправ локацію."
+        "Введи адресу, або скинь посилання google maps, або відправ локацію.",
+        Markup.inlineKeyboard([
+          Markup.button.callback(
+            "або.. 🔄 Почати спочатку",
+            "restart_creation"
+          ),
+        ])
       );
       return;
     }
@@ -108,7 +163,7 @@ const createEventScene = new Scenes.WizardScene(
       parse_mode: "HTML",
       ...Markup.inlineKeyboard([
         Markup.button.callback("✅ Так, все вірно!", "confirm_event"),
-        Markup.button.callback("❌ Ні, треба змінити", "cancel_event"),
+        Markup.button.callback("❌ Ні, скасувати", "cancel_event"),
       ]),
     });
 
@@ -179,7 +234,9 @@ createEventScene.action("confirm_event", async (ctx) => {
     await ctx.answerCbQuery("Помилка створення події");
     await ctx.reply(
       "Помилка створення події. Спробуйте ще раз пізніше.",
-      Markup.removeKeyboard()
+      Markup.inlineKeyboard([
+        Markup.button.callback("або 🔄 Почати спочатку", "restart_creation"),
+      ])
     );
     return ctx.scene.leave();
   }
@@ -203,12 +260,22 @@ createEventScene.on("text", async (ctx, next) => {
       Markup.inlineKeyboard([
         Markup.button.callback("✅ Підтвердити", "confirm_event"),
         Markup.button.callback("❌ Скасувати", "cancel_event"),
+        Markup.button.callback("або.. 🔄 Почати спочатку", "restart_creation"),
       ])
     );
     return;
   }
 
   return next();
+});
+
+// Handle restart action
+createEventScene.action("restart_creation", async (ctx) => {
+  await ctx.answerCbQuery("Починаємо спочатку");
+  await ctx.reply("Давай створимо нову подію! 🎉\n\nЩо організовуємо?");
+  ctx.wizard.state.eventData = {};
+  ctx.wizard.selectStep(1);
+  return;
 });
 
 module.exports = {
