@@ -9,6 +9,7 @@ const { getPastEvents } = require("./models/event");
 const { getLeaderboard } = require("./models/user");
 const { formatEvent } = require("./utils/formatters");
 const { setupAdminHandlers } = require("./handlers/adminHandlers");
+const { isGroupMember } = require("./utils/validators");
 
 // Initialize bot with token from .env
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -80,7 +81,7 @@ bot.command("help", async (ctx) => {
 });
 
 // Create event command - enters the create event scene
-bot.command("create", async (ctx) => {
+bot.command("create", isGroupMember, async (ctx) => {
   // Leave any active scene first
   if (ctx.scene.current) {
     await ctx.scene.leave();
@@ -89,7 +90,7 @@ bot.command("create", async (ctx) => {
 });
 
 // Events command - shows upcoming events
-bot.command("events", async (ctx) => {
+bot.command("events", isGroupMember, async (ctx) => {
   // Leave any active scene first
   if (ctx.scene.current) {
     await ctx.scene.leave();
@@ -117,7 +118,7 @@ bot.command("events", async (ctx) => {
 });
 
 // Past events command - shows archived events
-bot.command("past", async (ctx) => {
+bot.command("past", isGroupMember, async (ctx) => {
   // Leave any active scene first
   if (ctx.scene.current) {
     await ctx.scene.leave();
@@ -145,7 +146,7 @@ bot.command("past", async (ctx) => {
 });
 
 // Leaderboard command - shows top event creators
-bot.command("leaderboard", async (ctx) => {
+bot.command("leaderboard", isGroupMember, async (ctx) => {
   // Leave any active scene first
   if (ctx.scene.current) {
     await ctx.scene.leave();

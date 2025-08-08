@@ -1,100 +1,107 @@
-# Telegram Community Event Bot
+# Бот для Подій Спільноти в Telegram
 
-A Node.js Telegram bot for managing community events in a group chat. This bot allows users to create events, view upcoming and past events, and see a leaderboard of top event creators.
+Node.js Telegram бот для керування подіями спільноти в груповому чаті. Цей бот дозволяє користувачам створювати події, переглядати майбутні та минулі події, а також бачити рейтинг найактивніших організаторів.
 
-## Features
+## Функціональність
 
-- **Event Creation**: Step-by-step wizard to create new events
-- **Admin Approval**: Events require admin approval before being posted
-- **Event Listing**: View upcoming and past events
-- **Leaderboard**: Track top event creators in your community
-- **Topic Support**: Post events to specific topics in your group
+- **Створення подій**: Покроковий майстер для створення нових подій
+- **Опис події з HTML**: Обов'язковий форматований опис події з підтримкою HTML
+- **Схвалення адміністратором**: Події потребують схвалення адміністратором перед публікацією
+- **Список подій**: Перегляд майбутніх та минулих подій
+- **Рейтинг**: Відстеження найактивніших організаторів подій у вашій спільноті
+- **Підтримка тем**: Публікація подій у конкретних темах вашої групи
+- **Автоматичні опитування**: Створення опитування про відвідування після публікації події
+- **Перевірка членства**: Доступ до функцій бота лише для учасників групи
+- **Клікабельні посилання**: Автоматичне форматування посилань на локації
+- **Валідація дати**: Перевірка, що дата події не менше ніж за 30 хвилин у майбутньому
+- **Зручний інтерфейс**: Кнопки для перезапуску створення події в будь-який момент
 
-## Prerequisites
+## Вимоги
 
-- Node.js (v14 or higher)
-- MongoDB database (free tier on MongoDB Atlas works well)
-- Telegram Bot Token (from BotFather)
-- A Telegram group where the bot is an admin
+- Node.js (v14 або вище)
+- База даних MongoDB (безкоштовний тариф на MongoDB Atlas працює добре)
+- Токен Telegram бота (від BotFather)
+- Telegram група, де бот є адміністратором
 
-## Setup
+## Налаштування
 
-1. Clone this repository
-2. Install dependencies:
+1. Клонуйте цей репозиторій
+2. Встановіть залежності:
    ```
    npm install
    ```
-3. Configure your environment variables by editing the `.env` file:
+3. Налаштуйте змінні середовища, редагуючи файл `.env`:
    ```
-   BOT_TOKEN=your_bot_token_here
-   MONGODB_URI=your_mongodb_connection_string
-   ADMIN_USER_ID=your_telegram_id
-   GROUP_CHAT_ID=your_group_chat_id
-   TOPIC_ID=your_topic_id (optional)
+   BOT_TOKEN=ваш_токен_бота
+   MONGODB_URI=ваш_рядок_підключення_mongodb
+   ADMIN_USER_ID=ваш_telegram_id
+   GROUP_CHAT_ID=id_вашої_групи
+   TOPIC_ID=id_вашої_теми (необов'язково)
    ```
 
-### Getting Required IDs
+### Отримання необхідних ID
 
-- **Bot Token**: Talk to [@BotFather](https://t.me/botfather) on Telegram to create a new bot and get a token
-- **Admin User ID**: Send a message to [@userinfobot](https://t.me/userinfobot) to get your Telegram user ID
-- **Group Chat ID**: Add [@RawDataBot](https://t.me/RawDataBot) to your group temporarily, it will show the chat ID
-- **Topic ID**: If using topics, this is the message thread ID of your topic
+- **Токен бота**: Поговоріть з [@BotFather](https://t.me/botfather) в Telegram, щоб створити нового бота і отримати токен
+- **ID адміністратора**: Надішліть повідомлення [@userinfobot](https://t.me/userinfobot), щоб отримати ваш Telegram ID
+- **ID групового чату**: Тимчасово додайте [@RawDataBot](https://t.me/RawDataBot) до вашої групи, він покаже ID чату
+- **ID теми**: Якщо використовуєте теми, це ID гілки повідомлень вашої теми
 
-## Running the Bot
+## Запуск бота
 
-Start the bot with:
+Запустіть бота командою:
 
 ```
 node index.js
 ```
 
-For production, consider using a process manager like PM2:
+Для виробничого середовища рекомендується використовувати менеджер процесів, наприклад PM2:
 
 ```
 npm install -g pm2
 pm2 start index.js --name telegram-event-bot
 ```
 
-## Bot Commands
+## Команди бота
 
-- `/start` - Introduction to the bot
-- `/help` - Show available commands
-- `/create` - Start the event creation wizard
-- `/events` - List upcoming events
-- `/past` - Show past events
-- `/leaderboard` - View top event creators
+- `/start` - Знайомство з ботом
+- `/help` - Показати доступні команди
+- `/create` - Розпочати майстер створення події
+- `/events` - Список майбутніх подій
+- `/past` - Показати минулі події
+- `/leaderboard` - Переглянути рейтинг організаторів
+- `/restart` - Перезапустити бота (якщо щось не працює)
 
-## Event Creation Flow
+## Процес створення події
 
-1. User initiates with `/create` command
-2. Bot asks for event title (What?)
-3. Bot asks for event date and time (When?)
-4. Bot asks for event location (Where?)
-5. Bot shows a preview and asks for confirmation
-6. Event is sent to admin for approval
-7. If approved, event is posted to the group
+1. Користувач ініціює команду `/create`
+2. Бот запитує назву події (Що?)
+3. Бот запитує дату та час події (Коли?)
+4. Бот запитує місце проведення події (Де?)
+5. Бот запитує опис події (необов'язково, з підтримкою HTML)
+6. Бот показує попередній перегляд і запитує підтвердження
+7. Подія надсилається адміністратору для схвалення
+8. Якщо схвалено, подія публікується в групі з опитуванням про відвідування
 
-## Development
-
-The project structure is organized as follows:
+## Структура проекту
 
 ```
 telegram-community-bot/
-├── index.js               # Entry point
-├── .env                   # Environment variables
+├── index.js               # Точка входу
+├── .env                   # Змінні середовища
 ├── src/
-│   ├── bot.js            # Main bot setup
+│   ├── bot.js            # Основне налаштування бота
 │   ├── db/
-│   │   └── connection.js # Database connection
+│   │   └── connection.js # Підключення до бази даних
 │   ├── models/
-│   │   ├── event.js      # Event model
-│   │   └── user.js       # User model
+│   │   ├── event.js      # Модель події
+│   │   └── user.js       # Модель користувача
 │   ├── scenes/
-│   │   └── createEvent.js # Event creation wizard
+│   │   └── createEvent.js # Майстер створення події
 │   ├── handlers/
-│   │   └── adminHandlers.js # Admin approval handlers
+│   │   └── adminHandlers.js # Обробники схвалення адміністратором
 │   └── utils/
-│       └── formatters.js  # Message formatting utilities
+│       ├── formatters.js  # Утиліти форматування повідомлень
+│       └── validators.js  # Утиліти валідації користувачів
 └── package.json
 ```
 

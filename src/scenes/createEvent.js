@@ -118,16 +118,14 @@ const createEventScene = new Scenes.WizardScene(
     }
 
     await ctx.reply(
-      "Додай опис події (необов'язково):\n\n" +
+      "Додай опис події:\n\n" +
         "Можна використовувати форматування тексту:\n" +
-        '<b>жирний</b>, <i>курсив</i>, <u>підкреслений</u>, <a href="https://google.com">посилання</a>\n\n' +
-        "Або натисни кнопку 'Пропустити', якщо опис не потрібен.",
+        '<b>жирний</b>, <i>курсив</i>, <u>підкреслений</u>, <a href="https://google.com">посилання</a>',
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          Markup.button.callback("⏭️ Пропустити", "skip_description"),
           Markup.button.callback(
-            "або.. 🔄 Почати спочатку",
+            "🔄 Почати спочатку",
             "restart_creation"
           ),
         ]),
@@ -139,10 +137,25 @@ const createEventScene = new Scenes.WizardScene(
 
   // Step 5: Handle confirmation
   async (ctx) => {
-    // Save description if provided as text
-    if (ctx.message && ctx.message.text) {
-      ctx.wizard.state.eventData.description = ctx.message.text;
+    // Check if we have text for description
+    if (!ctx.message || !ctx.message.text) {
+      await ctx.reply(
+        "Потрібен опис події. Будь ласка, додай опис.",
+        {
+          parse_mode: "HTML",
+          ...Markup.inlineKeyboard([
+            Markup.button.callback(
+              "🔄 Почати спочатку",
+              "restart_creation"
+            ),
+          ]),
+        }
+      );
+      return;
     }
+    
+    // Save description
+    ctx.wizard.state.eventData.description = ctx.message.text;
 
     // Get user info for creator
     const user = ctx.from;
@@ -278,45 +291,7 @@ createEventScene.on("text", async (ctx, next) => {
   return next();
 });
 
-// Handle skip description action
-createEventScene.action("skip_description", async (ctx) => {
-  // Edit message to remove the inline keyboard
-  try {
-    await ctx.editMessageText(ctx.callbackQuery.message.text, {
-      parse_mode: "HTML",
-    });
-  } catch (error) {
-    console.log("Could not edit message:", error.message);
-  }
 
-  await ctx.answerCbQuery("Опис пропущено");
-
-  // Get user info for creator
-  const user = ctx.from;
-  ctx.wizard.state.eventData.creator = {
-    id: user.id,
-    username: user.username,
-    firstName: user.first_name,
-  };
-
-  // Set initial approval status
-  ctx.wizard.state.eventData.approved = false;
-
-  // Format the event for confirmation
-  const eventPreview = formatEvent(ctx.wizard.state.eventData);
-
-  await ctx.reply("Все вірно?\n\n" + eventPreview, {
-    parse_mode: "HTML",
-    ...Markup.inlineKeyboard([
-      Markup.button.callback("✅ Так, все вірно!", "confirm_event"),
-      Markup.button.callback("❌ Ні, скасувати", "cancel_event"),
-      Markup.button.callback("або.. 🔄 Почати спочатку", "restart_creation"),
-    ]),
-  });
-
-  // Move to the next step (final step)
-  return ctx.wizard.next();
-});
 
 // Handle restart action
 createEventScene.action("restart_creation", async (ctx) => {
