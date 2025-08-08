@@ -10,6 +10,7 @@ const { getLeaderboard } = require("./models/user");
 const { formatEvent } = require("./utils/formatters");
 const { setupAdminHandlers } = require("./handlers/adminHandlers");
 const { isGroupMember } = require("./utils/validators");
+const { startMsg } = require("./message_templates.js");
 
 // Initialize bot with token from .env
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -34,15 +35,7 @@ bot.command("start", async (ctx) => {
     await ctx.scene.leave();
   }
 
-  await ctx.reply(
-    "Привіт! Я бот для організації подій спільноти! 🎉\n\n" +
-      "Використовуй ці команди для взаємодії:\n" +
-      "/create - Створити нову подію\n" +
-      "/events - Переглянути майбутні події\n" +
-      "/past - Переглянути минулі події\n" +
-      "/leaderboard - Переглянути топ організаторів\n" +
-      "/restart - Перезапустити бота (якщо щось не так)"
-  );
+  await ctx.reply(startMsg);
 });
 
 // Restart command - resets any active scene

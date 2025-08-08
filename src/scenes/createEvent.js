@@ -5,6 +5,7 @@ const moment = require("moment");
 const { createEvent } = require("../models/event");
 const { getOrCreateUser, incrementUserEventCount } = require("../models/user");
 const { formatEvent } = require("../utils/formatters");
+const { startMsg } = require("../message_templates.js");
 
 // Create a scene for event creation
 const createEventScene = new Scenes.WizardScene(
@@ -20,6 +21,17 @@ const createEventScene = new Scenes.WizardScene(
 
   // Step 2: Receive title and ask for date (when)
   async (ctx) => {
+    // Check for restart command
+    if (
+      ctx.message &&
+      ctx.message.text &&
+      ctx.message.text.startsWith("/restart")
+    ) {
+      await ctx.scene.leave();
+      await ctx.reply(startMsg);
+      return;
+    }
+
     // Check if we have text
     if (!ctx.message || !ctx.message.text) {
       await ctx.reply("Потрібна назва події!");
@@ -42,6 +54,17 @@ const createEventScene = new Scenes.WizardScene(
 
   // Step 3: Receive date and ask for location (where)
   async (ctx) => {
+    // Check for restart command
+    if (
+      ctx.message &&
+      ctx.message.text &&
+      ctx.message.text.startsWith("/restart")
+    ) {
+      await ctx.scene.leave();
+      await ctx.reply(startMsg);
+      return;
+    }
+
     // Check if we have text
     if (!ctx.message || !ctx.message.text) {
       await ctx.reply("Введи дату та час у форматі: DD.MM.YYYY, HH:MM");
@@ -98,6 +121,17 @@ const createEventScene = new Scenes.WizardScene(
 
   // Step 4: Receive location and confirm event details
   async (ctx) => {
+    // Check for restart command
+    if (
+      ctx.message &&
+      ctx.message.text &&
+      ctx.message.text.startsWith("/restart")
+    ) {
+      await ctx.scene.leave();
+      await ctx.reply(startMsg);
+      return;
+    }
+
     // Check if we have location or text
     if (ctx.message.location) {
       // Save location coordinates
@@ -124,10 +158,7 @@ const createEventScene = new Scenes.WizardScene(
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          Markup.button.callback(
-            "🔄 Почати спочатку",
-            "restart_creation"
-          ),
+          Markup.button.callback("🔄 Почати спочатку", "restart_creation"),
         ]),
       }
     );
@@ -137,23 +168,27 @@ const createEventScene = new Scenes.WizardScene(
 
   // Step 5: Handle confirmation
   async (ctx) => {
-    // Check if we have text for description
-    if (!ctx.message || !ctx.message.text) {
-      await ctx.reply(
-        "Потрібен опис події. Будь ласка, додай опис.",
-        {
-          parse_mode: "HTML",
-          ...Markup.inlineKeyboard([
-            Markup.button.callback(
-              "🔄 Почати спочатку",
-              "restart_creation"
-            ),
-          ]),
-        }
-      );
+    // Check for restart command
+    if (
+      ctx.message &&
+      ctx.message.text &&
+      ctx.message.text.startsWith("/restart")
+    ) {
+      await ctx.scene.leave();
+      await ctx.reply(startMsg);
       return;
     }
-    
+    // Check if we have text for description
+    if (!ctx.message || !ctx.message.text) {
+      await ctx.reply("Потрібен опис події. Будь ласка, додай опис.", {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          Markup.button.callback("🔄 Почати спочатку", "restart_creation"),
+        ]),
+      });
+      return;
+    }
+
     // Save description
     ctx.wizard.state.eventData.description = ctx.message.text;
 
@@ -290,8 +325,6 @@ createEventScene.on("text", async (ctx, next) => {
 
   return next();
 });
-
-
 
 // Handle restart action
 createEventScene.action("restart_creation", async (ctx) => {
