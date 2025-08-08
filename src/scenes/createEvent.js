@@ -83,7 +83,7 @@ const createEventScene = new Scenes.WizardScene(
       await ctx.reply(
         "Невірний формат дати та часу.\n" +
           "Введи дату та час у форматі: DD.MM.YYYY, HH:MM\n" +
-          "Наприклад: <b>15.08.2025, 18:30</b>",
+          "Наприклад: <b>15.08.2025, 09:30</b>",
         {
           parse_mode: "HTML",
         }
