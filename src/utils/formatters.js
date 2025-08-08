@@ -1,4 +1,6 @@
 const moment = require("moment");
+require("moment/locale/uk"); // Підключаємо українську локалізацію
+moment.locale("uk"); // Встановлюємо українську локалізацію за замовчуванням
 
 /**
  * Format an event for display in Telegram messages
@@ -6,7 +8,7 @@ const moment = require("moment");
  * @returns {string} Formatted event text with HTML formatting
  */
 function formatEvent(event) {
-  const date = moment(event.date).format("MMMM D, YYYY [at] h:mm A");
+  const date = moment(event.date).format("D MMMM YYYY [о] HH:mm");
 
   // Prioritize username and format with @ symbol if available
   let creatorDisplay;

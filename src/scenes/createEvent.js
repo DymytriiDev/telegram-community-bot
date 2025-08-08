@@ -110,11 +110,7 @@ const createEventScene = new Scenes.WizardScene(
     ctx.wizard.state.eventData.date = date.toDate();
 
     await ctx.reply(
-      "Де відбувається?\n\n" +
-        "Напиши адресу, або скинь посилання google maps, або відправ локацію.",
-      Markup.keyboard([Markup.button.locationRequest("📍 Надіслати локацію")])
-        .oneTime()
-        .resize()
+      "Де відбувається?\n\n" + "Напиши адресу, або скинь посилання google maps."
     );
     return ctx.wizard.next();
   },
@@ -152,13 +148,7 @@ const createEventScene = new Scenes.WizardScene(
     }
 
     await ctx.reply(
-      "Додай опис події. Можна включити важливі деталі або просто зробити цікавий анонс :)",
-      {
-        parse_mode: "HTML",
-        ...Markup.inlineKeyboard([
-          Markup.button.callback("🔄 Почати спочатку", "restart_creation"),
-        ]),
-      }
+      "Додай опис події. Можна включити важливі деталі або просто зробити цікавий анонс :)"
     );
 
     return ctx.wizard.next();
@@ -207,8 +197,8 @@ const createEventScene = new Scenes.WizardScene(
     await ctx.reply("Все вірно?\n\n" + eventPreview, {
       parse_mode: "HTML",
       ...Markup.inlineKeyboard([
-        Markup.button.callback("✅ Так, все вірно!", "confirm_event"),
-        Markup.button.callback("❌ Ні, скасувати", "cancel_event"),
+        Markup.button.callback("✅ Так!", "confirm_event"),
+        Markup.button.callback("❌ Скасувати", "cancel_event"),
       ]),
     });
 
