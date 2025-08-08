@@ -7,8 +7,14 @@ const moment = require("moment");
  */
 function formatEvent(event) {
   const date = moment(event.date).format("MMMM D, YYYY [at] h:mm A");
-  const creatorName =
-    event.creator.firstName || event.creator.username || "Anonymous";
+
+  // Prioritize username and format with @ symbol if available
+  let creatorDisplay;
+  if (event.creator.username) {
+    creatorDisplay = `@${event.creator.username}`;
+  } else {
+    creatorDisplay = event.creator.firstName || "Анонім";
+  }
 
   let locationText = "Локація не визначена";
   if (event.location) {
@@ -19,11 +25,18 @@ function formatEvent(event) {
     }
   }
 
+  // Add description if available
+  let descriptionText = "";
+  if (event.description) {
+    descriptionText = `\n\n${event.description}`;
+  }
+
   return (
     `<b>${event.title}</b>\n\n` +
     `<b>📆 Коли?</b> ${date}\n` +
     `<b>📍 Де?</b> ${locationText}\n` +
-    `<b>👤 Хост:</b> ${creatorName}`
+    `<b>👤 Хост:</b> ${creatorDisplay}\n` +
+    descriptionText
   );
 }
 

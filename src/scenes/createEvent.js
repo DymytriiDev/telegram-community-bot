@@ -11,7 +11,7 @@ const createEventScene = new Scenes.WizardScene(
   "create-event",
   // Step 1: Ask for event title (what)
   async (ctx) => {
-    await ctx.reply("Що організовуємо?\n\n" + "Введи назву події.", {
+    await ctx.reply("Що організовуємо? Введи назву події.", {
       parse_mode: "HTML",
     });
     ctx.wizard.state.eventData = {};
@@ -22,15 +22,7 @@ const createEventScene = new Scenes.WizardScene(
   async (ctx) => {
     // Check if we have text
     if (!ctx.message || !ctx.message.text) {
-      await ctx.reply(
-        "Потрібна назва події.",
-        Markup.inlineKeyboard([
-          Markup.button.callback(
-            "або.. 🔄 Почати спочатку",
-            "restart_creation"
-          ),
-        ])
-      );
+      await ctx.reply("Потрібна назва події!");
       return;
     }
 
@@ -52,15 +44,7 @@ const createEventScene = new Scenes.WizardScene(
   async (ctx) => {
     // Check if we have text
     if (!ctx.message || !ctx.message.text) {
-      await ctx.reply(
-        "Введи дату та час у форматі: DD.MM.YYYY, HH:MM",
-        Markup.inlineKeyboard([
-          Markup.button.callback(
-            "або.. 🔄 Почати спочатку",
-            "restart_creation"
-          ),
-        ])
-      );
+      await ctx.reply("Введи дату та час у форматі: DD.MM.YYYY, HH:MM");
       return;
     }
 
@@ -79,12 +63,6 @@ const createEventScene = new Scenes.WizardScene(
           "Наприклад: <b>15.08.2025, 18:30</b>",
         {
           parse_mode: "HTML",
-          ...Markup.inlineKeyboard([
-            Markup.button.callback(
-              "або.. 🔄 Почати спочатку",
-              "restart_creation"
-            ),
-          ]),
         }
       );
       return;
@@ -100,13 +78,7 @@ const createEventScene = new Scenes.WizardScene(
           `Поточний час: ${now.format("DD.MM.YYYY, HH:mm")}\n` +
           `Мінімально допустимий час: ${minAllowedTime.format(
             "DD.MM.YYYY, HH:mm"
-          )}`,
-        Markup.inlineKeyboard([
-          Markup.button.callback(
-            "або.. 🔄 Почати спочатку",
-            "restart_creation"
-          ),
-        ])
+          )}`
       );
       return;
     }
@@ -140,19 +112,40 @@ const createEventScene = new Scenes.WizardScene(
       };
     } else {
       await ctx.reply(
-        "Введи адресу, або скинь посилання google maps, або відправ локацію.",
-        Markup.inlineKeyboard([
-          Markup.button.callback(
-            "або.. 🔄 Почати спочатку",
-            "restart_creation"
-          ),
-        ])
+        "Введи адресу, або скинь посилання google maps, або відправ локацію."
       );
       return;
     }
 
-    // Save creator information
-    const user = ctx.message.from;
+    await ctx.reply(
+      "Додай опис події (необов'язково):\n\n" +
+        "Можна використовувати форматування тексту:\n" +
+        '<b>жирний</b>, <i>курсив</i>, <u>підкреслений</u>, <a href="https://google.com">посилання</a>\n\n' +
+        "Або натисни кнопку 'Пропустити', якщо опис не потрібен.",
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          Markup.button.callback("⏭️ Пропустити", "skip_description"),
+          Markup.button.callback(
+            "або.. 🔄 Почати спочатку",
+            "restart_creation"
+          ),
+        ]),
+      }
+    );
+
+    return ctx.wizard.next();
+  },
+
+  // Step 5: Handle confirmation
+  async (ctx) => {
+    // Save description if provided as text
+    if (ctx.message && ctx.message.text) {
+      ctx.wizard.state.eventData.description = ctx.message.text;
+    }
+
+    // Get user info for creator
+    const user = ctx.from;
     ctx.wizard.state.eventData.creator = {
       id: user.id,
       username: user.username,
@@ -270,7 +263,7 @@ createEventScene.on("text", async (ctx, next) => {
   const step = ctx.wizard.cursor;
 
   // If we're at the confirmation step, remind to use buttons
-  if (step === 4) {
+  if (step === 5) {
     await ctx.reply(
       "Ви можете підтвердити або скасувати подію тільки за допомогою кнопок.",
       Markup.inlineKeyboard([
@@ -283,6 +276,46 @@ createEventScene.on("text", async (ctx, next) => {
   }
 
   return next();
+});
+
+// Handle skip description action
+createEventScene.action("skip_description", async (ctx) => {
+  // Edit message to remove the inline keyboard
+  try {
+    await ctx.editMessageText(ctx.callbackQuery.message.text, {
+      parse_mode: "HTML",
+    });
+  } catch (error) {
+    console.log("Could not edit message:", error.message);
+  }
+
+  await ctx.answerCbQuery("Опис пропущено");
+
+  // Get user info for creator
+  const user = ctx.from;
+  ctx.wizard.state.eventData.creator = {
+    id: user.id,
+    username: user.username,
+    firstName: user.first_name,
+  };
+
+  // Set initial approval status
+  ctx.wizard.state.eventData.approved = false;
+
+  // Format the event for confirmation
+  const eventPreview = formatEvent(ctx.wizard.state.eventData);
+
+  await ctx.reply("Все вірно?\n\n" + eventPreview, {
+    parse_mode: "HTML",
+    ...Markup.inlineKeyboard([
+      Markup.button.callback("✅ Так, все вірно!", "confirm_event"),
+      Markup.button.callback("❌ Ні, скасувати", "cancel_event"),
+      Markup.button.callback("або.. 🔄 Почати спочатку", "restart_creation"),
+    ]),
+  });
+
+  // Move to the next step (final step)
+  return ctx.wizard.next();
 });
 
 // Handle restart action
