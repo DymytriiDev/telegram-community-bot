@@ -152,9 +152,7 @@ const createEventScene = new Scenes.WizardScene(
     }
 
     await ctx.reply(
-      "Додай опис події:\n\n" +
-        "Можна використовувати форматування тексту:\n" +
-        '<b>жирний</b>, <i>курсив</i>, <u>підкреслений</u>, <a href="https://google.com">посилання</a>',
+      "Додай опис події. Можна включити важливі деталі або просто зробити цікавий анонс :)",
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
