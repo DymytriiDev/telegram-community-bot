@@ -1,14 +1,14 @@
-const { Telegraf, Scenes, session } = require('telegraf');
-const { message } = require('telegraf/filters');
-require('dotenv').config();
+const { Telegraf, Scenes, session } = require("telegraf");
+const { message } = require("telegraf/filters");
+require("dotenv").config();
 
-const { connectToDatabase } = require('./db/connection');
-const { createEventScene } = require('./scenes/createEvent');
-const { getUpcomingEvents } = require('./models/event');
-const { getPastEvents } = require('./models/event');
-const { getLeaderboard } = require('./models/user');
-const { formatEvent } = require('./utils/formatters');
-const { setupAdminHandlers } = require('./handlers/adminHandlers');
+const { connectToDatabase } = require("./db/connection");
+const { createEventScene } = require("./scenes/createEvent");
+const { getUpcomingEvents } = require("./models/event");
+const { getPastEvents } = require("./models/event");
+const { getLeaderboard } = require("./models/user");
+const { formatEvent } = require("./utils/formatters");
+const { setupAdminHandlers } = require("./handlers/adminHandlers");
 
 // Initialize bot with token from .env
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -26,97 +26,155 @@ bot.use(async (ctx, next) => {
   return next();
 });
 
-// Start command
-bot.command('start', async (ctx) => {
+// Start command - resets any active scene and shows welcome message
+bot.command("start", async (ctx) => {
+  // Leave any active scene
+  if (ctx.scene.current) {
+    await ctx.scene.leave();
+  }
+
   await ctx.reply(
-    'Welcome to the Community Event Bot! 🎉\n\n' +
-    'Use these commands to interact with me:\n' +
-    '/create - Create a new event\n' +
-    '/events - View upcoming events\n' +
-    '/past - View past events\n' +
-    '/leaderboard - See who creates the most events'
+    "Привіт! Я бот для організації подій спільноти! 🎉\n\n" +
+      "Використовуй ці команди для взаємодії:\n" +
+      "/create - Створити нову подію\n" +
+      "/events - Переглянути майбутні події\n" +
+      "/past - Переглянути минулі події\n" +
+      "/leaderboard - Переглянути топ організаторів\n" +
+      "/restart - Перезапустити бота (якщо щось не так)"
+  );
+});
+
+// Restart command - resets any active scene
+bot.command("restart", async (ctx) => {
+  // Leave any active scene
+  if (ctx.scene.current) {
+    await ctx.scene.leave();
+  }
+
+  await ctx.reply(
+    "Всі активні діалоги скинуто. Що бажаєш зробити далі?\n\n" +
+      "/create - Створити нову подію\n" +
+      "/events - Переглянути майбутні події\n" +
+      "/past - Переглянути минулі події\n" +
+      "/leaderboard - Переглянути топ організаторів"
   );
 });
 
 // Help command
-bot.command('help', async (ctx) => {
+bot.command("help", async (ctx) => {
+  // Leave any active scene
+  if (ctx.scene.current) {
+    await ctx.scene.leave();
+  }
+
   await ctx.reply(
-    'Community Event Bot Help 🤖\n\n' +
-    'Available commands:\n' +
-    '/create - Start the event creation process\n' +
-    '/events - List all upcoming events\n' +
-    '/past - Show past events\n' +
-    '/leaderboard - View top event creators\n' +
-    '/help - Show this help message'
+    "Довідка бота подій спільноти 🤖\n\n" +
+      "Доступні команди:\n" +
+      "/create - Створити нову подію\n" +
+      "/events - Переглянути майбутні події\n" +
+      "/past - Переглянути минулі події\n" +
+      "/leaderboard - Переглянути топ організаторів\n" +
+      "/restart - Перезапустити бота (якщо щось не так)\n" +
+      "/help - Показати цю довідку"
   );
 });
 
 // Create event command - enters the create event scene
-bot.command('create', (ctx) => ctx.scene.enter('create-event'));
+bot.command("create", async (ctx) => {
+  // Leave any active scene first
+  if (ctx.scene.current) {
+    await ctx.scene.leave();
+  }
+  return ctx.scene.enter("create-event");
+});
 
 // Events command - shows upcoming events
-bot.command('events', async (ctx) => {
+bot.command("events", async (ctx) => {
+  // Leave any active scene first
+  if (ctx.scene.current) {
+    await ctx.scene.leave();
+  }
+
   try {
     const events = await getUpcomingEvents();
-    
+
     if (events.length === 0) {
-      return ctx.reply('No upcoming events found. Create one with /create!');
+      return ctx.reply("Немає майбутніх подій. Створи нову з /create!");
     }
-    
-    await ctx.reply(`Found ${events.length} upcoming events:`);
-    
+
+    await ctx.reply(`Знайдено ${events.length} майбутніх подій:`);
+
     // Send each event as a separate message
     for (const event of events) {
-      await ctx.reply(formatEvent(event), { parse_mode: 'HTML' });
+      await ctx.reply(formatEvent(event), { parse_mode: "HTML" });
     }
   } catch (error) {
-    console.error('Error fetching upcoming events:', error);
-    await ctx.reply('Sorry, there was an error fetching the events. Please try again later.');
+    console.error("Error fetching upcoming events:", error);
+    await ctx.reply(
+      "Вибачте, сталася помилка при отриманні подій. Спробуйте пізніше."
+    );
   }
 });
 
 // Past events command - shows archived events
-bot.command('past', async (ctx) => {
+bot.command("past", async (ctx) => {
+  // Leave any active scene first
+  if (ctx.scene.current) {
+    await ctx.scene.leave();
+  }
+
   try {
     const events = await getPastEvents();
-    
+
     if (events.length === 0) {
-      return ctx.reply('No past events found.');
+      return ctx.reply("Немає минулих подій.");
     }
-    
-    await ctx.reply(`Found ${events.length} past events:`);
-    
+
+    await ctx.reply(`Знайдено ${events.length} минулих подій:`);
+
     // Send each event as a separate message
     for (const event of events) {
-      await ctx.reply(formatEvent(event), { parse_mode: 'HTML' });
+      await ctx.reply(formatEvent(event), { parse_mode: "HTML" });
     }
   } catch (error) {
-    console.error('Error fetching past events:', error);
-    await ctx.reply('Sorry, there was an error fetching past events. Please try again later.');
+    console.error("Error fetching past events:", error);
+    await ctx.reply(
+      "Вибачте, сталася помилка при отриманні минулих подій. Спробуйте пізніше."
+    );
   }
 });
 
 // Leaderboard command - shows top event creators
-bot.command('leaderboard', async (ctx) => {
+bot.command("leaderboard", async (ctx) => {
+  // Leave any active scene first
+  if (ctx.scene.current) {
+    await ctx.scene.leave();
+  }
+
   try {
-    const users = await getLeaderboard(10);
-    
-    if (users.length === 0) {
-      return ctx.reply('No events have been created yet. Be the first with /create!');
+    const leaders = await getLeaderboard();
+
+    if (leaders.length === 0) {
+      return ctx.reply("Ще не створено жодної події.");
     }
-    
-    let message = '🏆 <b>Event Creator Leaderboard</b> 🏆\n\n';
-    
-    users.forEach((user, index) => {
-      const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
-      const name = user.firstName || user.username || 'Anonymous';
-      message += `${medal} ${name}: ${user.eventsApproved} approved events\n`;
+
+    let message = "🏆 Топ організаторів подій 🏆\n\n";
+
+    leaders.forEach((user, index) => {
+      const medal =
+        index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "";
+      const name = user.firstName || user.username || "Анонім";
+      message += `${medal} ${index + 1}. ${name}: ${user.eventCount} подій (${
+        user.approvedCount
+      } підтверджено)\n`;
     });
-    
-    await ctx.reply(message, { parse_mode: 'HTML' });
+
+    await ctx.reply(message);
   } catch (error) {
-    console.error('Error fetching leaderboard:', error);
-    await ctx.reply('Sorry, there was an error fetching the leaderboard. Please try again later.');
+    console.error("Error fetching leaderboard:", error);
+    await ctx.reply(
+      "Вибачте, сталася помилка при отриманні топу організаторів. Спробуйте пізніше."
+    );
   }
 });
 
@@ -126,7 +184,7 @@ setupAdminHandlers(bot);
 // Handle errors
 bot.catch((err, ctx) => {
   console.error(`Error for ${ctx.updateType}:`, err);
-  ctx.reply('Oops! Something went wrong. Please try again later.');
+  ctx.reply("Oops! Something went wrong. Please try again later.");
 });
 
 module.exports = bot;

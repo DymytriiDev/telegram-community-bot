@@ -21,9 +21,9 @@ function formatEvent(event) {
 
   return (
     `<b>${event.title}</b>\n\n` +
-    `<b>📆 #Коли?</b> ${date}\n` +
-    `<b>📍 #Де?</b> ${locationText}\n` +
-    `<b>👤 #Хост: </b> ${creatorName}`
+    `<b>📆 Коли?</b> ${date}\n` +
+    `<b>📍 Де?</b> ${locationText}\n` +
+    `<b>👤 Хост:</b> ${creatorName}`
   );
 }
 

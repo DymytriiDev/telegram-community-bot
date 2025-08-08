@@ -11,7 +11,9 @@ const createEventScene = new Scenes.WizardScene(
   "create-event",
   // Step 1: Ask for event title (what)
   async (ctx) => {
-    await ctx.reply("Давай створимо нову подію! 🎉\n\n" + "Що організовуємо?");
+    await ctx.reply("Що організовуємо?\n\n" + "Введи назву події.", {
+      parse_mode: "HTML",
+    });
     ctx.wizard.state.eventData = {};
     return ctx.wizard.next();
   },
@@ -66,7 +68,11 @@ const createEventScene = new Scenes.WizardScene(
     const dateStr = ctx.message.text;
     const date = moment(dateStr, "DD.MM.YYYY, HH:mm");
 
-    if (!date.isValid()) {
+    // Check if the time is specified (contains a comma and time part)
+    const hasTimeSpecified =
+      dateStr.includes(",") && /\d{2}:\d{2}/.test(dateStr);
+
+    if (!date.isValid() || !hasTimeSpecified) {
       await ctx.reply(
         "Невірний формат дати та часу.\n" +
           "Введи дату та час у форматі: DD.MM.YYYY, HH:MM\n" +
@@ -180,6 +186,11 @@ const createEventScene = new Scenes.WizardScene(
 // Handle event confirmation
 createEventScene.action("confirm_event", async (ctx) => {
   try {
+    // First, edit the message to remove the inline keyboard
+    await ctx.editMessageText(ctx.callbackQuery.message.text, {
+      parse_mode: "HTML",
+    });
+
     // Store event in database
     const eventData = ctx.wizard.state.eventData;
     const savedEvent = await createEvent(eventData);
@@ -244,6 +255,11 @@ createEventScene.action("confirm_event", async (ctx) => {
 
 // Handle event cancellation
 createEventScene.action("cancel_event", async (ctx) => {
+  // First, edit the message to remove the inline keyboard
+  await ctx.editMessageText(ctx.callbackQuery.message.text, {
+    parse_mode: "HTML",
+  });
+
   await ctx.answerCbQuery("Подія скасована");
   await ctx.reply("Подія скасована.", Markup.removeKeyboard());
   return ctx.scene.leave();
@@ -271,6 +287,16 @@ createEventScene.on("text", async (ctx, next) => {
 
 // Handle restart action
 createEventScene.action("restart_creation", async (ctx) => {
+  // First, edit the message to remove the inline keyboard
+  try {
+    await ctx.editMessageText(ctx.callbackQuery.message.text, {
+      parse_mode: "HTML",
+    });
+  } catch (error) {
+    // Ignore errors if message can't be edited (e.g., too old)
+    console.log("Could not edit message:", error.message);
+  }
+
   await ctx.answerCbQuery("Починаємо спочатку");
   await ctx.reply("Давай створимо нову подію! 🎉\n\nЩо організовуємо?");
   ctx.wizard.state.eventData = {};
