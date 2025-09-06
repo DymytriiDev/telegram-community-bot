@@ -156,11 +156,9 @@ bot.command("leaderboard", isGroupMember, async (ctx) => {
 
     leaders.forEach((user, index) => {
       const medal =
-        index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "";
+        index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : "";
       const name = user.firstName || user.username || "Анонім";
-      message += `${medal} ${index + 1}. ${name}: ${
-        user.eventsApproved
-      } Подій\n`;
+      message += `${medal}${name} - ${user.eventsApproved} Події\n`;
     });
 
     await ctx.reply(message);
