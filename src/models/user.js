@@ -97,13 +97,14 @@ async function incrementUserEventCount(telegramId, approved = false) {
 async function getLeaderboard(limit = 10) {
   const db = getDb();
   const collection = db.collection(COLLECTION_NAME);
-  
-  return collection.find({
-    eventsApproved: { $gt: 0 }
-  })
-  .sort({ eventsApproved: -1, eventsCreated: -1 })
-  .limit(limit)
-  .toArray();
+
+  return collection
+    .find({
+      eventsApproved: { $gt: 0 },
+    })
+    .sort({ eventsApproved: -1 })
+    .limit(limit)
+    .toArray();
 }
 
 module.exports = {

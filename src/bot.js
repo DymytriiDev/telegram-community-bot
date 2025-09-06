@@ -158,9 +158,9 @@ bot.command("leaderboard", isGroupMember, async (ctx) => {
       const medal =
         index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "";
       const name = user.firstName || user.username || "Анонім";
-      message += `${medal} ${index + 1}. ${name}: ${user.eventCount} подій (${
-        user.approvedCount
-      } підтверджено)\n`;
+      message += `${medal} ${index + 1}. ${name}: ${
+        user.eventsApproved
+      } Подій\n`;
     });
 
     await ctx.reply(message);
