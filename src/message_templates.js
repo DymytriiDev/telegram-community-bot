@@ -2,7 +2,7 @@ const commandsMsg =
   "/create - Створити нову подію\n" +
   "/events - Переглянути майбутні події\n" +
   "/past - Переглянути минулі події\n" +
-  "/leaderboard - Переглянути топ організаторів\n" +
+  "/leaderboard - ТОП організаторів\n" +
   "/restart - Перезапустити бота (якщо щось не так)";
 
 const startMsg =
@@ -12,8 +12,11 @@ const startMsg =
 
 const errorMsg = "Вибачте, сталася помилка при отриманні топу організаторів.";
 
+const dateFormatMsg = "<b>25 жовтня 18:00</b> або <b>25.10, 18:00</b>";
+
 module.exports = {
   startMsg,
   commandsMsg,
   errorMsg,
+  dateFormatMsg,
 };

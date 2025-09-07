@@ -5,7 +5,8 @@ const moment = require("moment");
 const { createEvent } = require("../models/event");
 const { getOrCreateUser, incrementUserEventCount } = require("../models/user");
 const { formatEvent } = require("../utils/formatters");
-const { startMsg } = require("../message_templates.js");
+const fetchDateTime = require("../utils/fetchDateTime");
+const { startMsg, dateFormatMsg } = require("../message_templates.js");
 
 // Create a scene for event creation
 const createEventScene = new Scenes.WizardScene(
@@ -42,9 +43,7 @@ const createEventScene = new Scenes.WizardScene(
     ctx.wizard.state.eventData.title = ctx.message.text;
 
     await ctx.reply(
-      "Супер! Коли?\n\n" +
-        "Введи дату та час, наприклад:\n" +
-        "<b>15.08.2025, 18:30</b>",
+      "Супер! Коли?\n\n" + "Введи дату та час, наприклад:\n" + dateFormatMsg,
       {
         parse_mode: "HTML",
       }
@@ -67,12 +66,14 @@ const createEventScene = new Scenes.WizardScene(
 
     // Check if we have text
     if (!ctx.message || !ctx.message.text) {
-      await ctx.reply("Введи дату та час у форматі: DD.MM.YYYY, HH:MM");
+      await ctx.reply("Введи дату та час у форматі: " + dateFormatMsg, {
+        parse_mode: "HTML",
+      });
       return;
     }
 
     // Try to parse the date
-    const dateStr = ctx.message.text;
+    const dateStr = fetchDateTime(ctx.message.text);
     const date = moment(dateStr, "DD.MM.YYYY, HH:mm");
 
     // Check if the time is specified (contains a comma and time part)
@@ -82,8 +83,8 @@ const createEventScene = new Scenes.WizardScene(
     if (!date.isValid() || !hasTimeSpecified) {
       await ctx.reply(
         "Невірний формат дати та часу.\n" +
-          "Введи дату та час у форматі: DD.MM.YYYY, HH:MM\n" +
-          "Наприклад: <b>15.08.2025, 09:30</b>",
+          "Введи дату та час у форматі: " +
+          dateFormatMsg,
         {
           parse_mode: "HTML",
         }
@@ -98,10 +99,8 @@ const createEventScene = new Scenes.WizardScene(
     if (date.isBefore(minAllowedTime)) {
       await ctx.reply(
         "Подія має бути запланована щонайменше на 30 хвилин вперед від поточного часу.\n" +
-          `Поточний час: ${now.format("DD.MM.YYYY, HH:mm")}\n` +
-          `Мінімально допустимий час: ${minAllowedTime.format(
-            "DD.MM.YYYY, HH:mm"
-          )}`
+          `Поточний час: ${now.format("DD.MM, HH:mm")}\n` +
+          `Мінімально допустимий час: ${minAllowedTime.format("DD.MM, HH:mm")}`
       );
       return;
     }
@@ -148,7 +147,7 @@ const createEventScene = new Scenes.WizardScene(
     }
 
     await ctx.reply(
-      "Додай опис події. Можна включити важливі деталі або просто зробити цікавий анонс :)"
+      "Додай опис події! Розкажи деталі або зроби цікавий анонс :)"
     );
 
     return ctx.wizard.next();
@@ -168,7 +167,7 @@ const createEventScene = new Scenes.WizardScene(
     }
     // Check if we have text for description
     if (!ctx.message || !ctx.message.text) {
-      await ctx.reply("Потрібен опис події. Будь ласка, додай опис.", {
+      await ctx.reply("Потрібен опис події – будь ласка, додай опис.", {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
           Markup.button.callback("🔄 Почати спочатку", "restart_creation"),
@@ -253,7 +252,7 @@ createEventScene.action("confirm_event", async (ctx) => {
       await ctx.answerCbQuery();
       await ctx.reply(
         "Твоя подія створена і відправлена на підтвердження адмінам! 🎉\n" +
-          "Ти отримаєш повідомлення, коли адмін підтвердить подію.",
+          "Вона опублікується в каналі, коли буде підтверджена.",
         Markup.removeKeyboard()
       );
     } else {
@@ -262,8 +261,7 @@ createEventScene.action("confirm_event", async (ctx) => {
       );
       await ctx.answerCbQuery();
       await ctx.reply(
-        "Your event has been created! 🎉\n" +
-          "Note: Admin approval is not configured.",
+        "Нова подія! 🎉\n" + "Note: Admin approval is not configured.",
         Markup.removeKeyboard()
       );
     }
