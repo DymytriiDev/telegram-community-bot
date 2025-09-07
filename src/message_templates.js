@@ -15,4 +15,5 @@ const errorMsg = "Вибачте, сталася помилка при отри�
 module.exports = {
   startMsg,
   commandsMsg,
+  errorMsg,
 };
