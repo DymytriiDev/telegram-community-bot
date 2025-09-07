@@ -34,18 +34,12 @@ function formatEvent(event) {
     }
   }
 
-  // Add description if available
-  let descriptionText = "";
-  if (event.description) {
-    descriptionText = `<b>Деталі: </b>\n${event.description}`;
-  }
-
   return (
     `<b>${event.title}</b>\n\n` +
     `<b>📆 Коли?</b> ${date}\n` +
     `<b>📍 Де?</b> ${locationText}\n` +
-    `<b>👤 Хост:</b> ${creatorDisplay}\n` +
-    descriptionText
+    `<b>👤 Хост:</b> ${creatorDisplay}\n\n` +
+    event.description
   );
 }
 

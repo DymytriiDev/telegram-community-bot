@@ -10,7 +10,7 @@ const { getLeaderboard } = require("./models/user");
 const { formatEvent } = require("./utils/formatters");
 const { setupAdminHandlers } = require("./handlers/adminHandlers");
 const { isGroupMember } = require("./utils/validators");
-const { startMsg } = require("./message_templates.js");
+const { startMsg, commandsMsg, errorMsg } = require("./message_templates.js");
 
 // Initialize bot with token from .env
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -46,11 +46,7 @@ bot.command("restart", async (ctx) => {
   }
 
   await ctx.reply(
-    "Всі активні діалоги скинуто. Що бажаєш зробити далі?\n\n" +
-      "/create - Створити нову подію\n" +
-      "/events - Переглянути майбутні події\n" +
-      "/past - Переглянути минулі події\n" +
-      "/leaderboard - Переглянути топ організаторів"
+    "Всі активні діалоги скинуто. Що робимо далі?\n\n" + commandsMsg
   );
 });
 
@@ -62,14 +58,7 @@ bot.command("help", async (ctx) => {
   }
 
   await ctx.reply(
-    "Довідка бота подій спільноти 🤖\n\n" +
-      "Доступні команди:\n" +
-      "/create - Створити нову подію\n" +
-      "/events - Переглянути майбутні події\n" +
-      "/past - Переглянути минулі події\n" +
-      "/leaderboard - Переглянути топ організаторів\n" +
-      "/restart - Перезапустити бота (якщо щось не так)\n" +
-      "/help - Показати цю довідку"
+    "Довідка бота подій спільноти 🤖\n\n" + "Доступні команди:\n" + commandsMsg
   );
 });
 
@@ -96,7 +85,7 @@ bot.command("events", isGroupMember, async (ctx) => {
       return ctx.reply("Немає майбутніх подій. Створи нову з /create!");
     }
 
-    await ctx.reply(`Знайдено ${events.length} майбутніх подій:`);
+    await ctx.reply(`${events.length} подій незабаром:`);
 
     // Send each event as a separate message
     for (const event of events) {
@@ -104,9 +93,7 @@ bot.command("events", isGroupMember, async (ctx) => {
     }
   } catch (error) {
     console.error("Error fetching upcoming events:", error);
-    await ctx.reply(
-      "Вибачте, сталася помилка при отриманні подій. Спробуйте пізніше."
-    );
+    await ctx.reply(errorMsg);
   }
 });
 
@@ -132,9 +119,7 @@ bot.command("past", isGroupMember, async (ctx) => {
     }
   } catch (error) {
     console.error("Error fetching past events:", error);
-    await ctx.reply(
-      "Вибачте, сталася помилка при отриманні минулих подій. Спробуйте пізніше."
-    );
+    await ctx.reply(errorMsg);
   }
 });
 
@@ -164,9 +149,7 @@ bot.command("leaderboard", isGroupMember, async (ctx) => {
     await ctx.reply(message);
   } catch (error) {
     console.error("Error fetching leaderboard:", error);
-    await ctx.reply(
-      "Вибачте, сталася помилка при отриманні топу організаторів. Спробуйте пізніше."
-    );
+    await ctx.reply(errorMsg);
   }
 });
 
@@ -176,7 +159,7 @@ setupAdminHandlers(bot);
 // Handle errors
 bot.catch((err, ctx) => {
   console.error(`Error for ${ctx.updateType}:`, err);
-  ctx.reply("Oops! Something went wrong. Please try again later.");
+  ctx.reply(errorMsg);
 });
 
 module.exports = bot;
