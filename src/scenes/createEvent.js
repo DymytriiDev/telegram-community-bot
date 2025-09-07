@@ -325,7 +325,7 @@ createEventScene.action("restart_creation", async (ctx) => {
   }
 
   await ctx.answerCbQuery("Починаємо спочатку");
-  await ctx.reply("Давай створимо нову подію! 🎉\n\nЩо організовуємо?");
+  await ctx.reply("Давай організуємо нову зустріч! 🎉\n\nЩо організовуємо?");
   ctx.wizard.state.eventData = {};
   ctx.wizard.selectStep(1);
   return;
