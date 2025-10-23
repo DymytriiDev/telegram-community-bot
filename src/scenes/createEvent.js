@@ -13,9 +13,7 @@ const createEventScene = new Scenes.WizardScene(
   "create-event",
   // Step 1: Ask for event title (what)
   async (ctx) => {
-    await ctx.reply("Що організовуємо? Введи назву події.", {
-      parse_mode: "HTML",
-    });
+    await ctx.reply("Як ти хочеш назвати подію? \nВведи назву");
     ctx.wizard.state.eventData = {};
     return ctx.wizard.next();
   },
@@ -43,7 +41,9 @@ const createEventScene = new Scenes.WizardScene(
     ctx.wizard.state.eventData.title = ctx.message.text;
 
     await ctx.reply(
-      "Супер! Коли?\n\n" + "Введи дату та час, наприклад:\n" + dateFormatMsg,
+      "Коли відбудеться подія?\n" +
+        "Введи дату та час, наприклад:\n" +
+        dateFormatMsg,
       {
         parse_mode: "HTML",
       }
@@ -109,7 +109,7 @@ const createEventScene = new Scenes.WizardScene(
     ctx.wizard.state.eventData.date = date.toDate();
 
     await ctx.reply(
-      "Де відбувається?\n\n" + "Напиши адресу, або скинь посилання google maps."
+      "Яке місце зустрічі?\n" + "Напиши адресу або скинь посилання google maps"
     );
     return ctx.wizard.next();
   },
@@ -141,14 +141,12 @@ const createEventScene = new Scenes.WizardScene(
       };
     } else {
       await ctx.reply(
-        "Введи адресу, або скинь посилання google maps, або відправ локацію."
+        "Введи адресу або скинь посилання google maps, або відправ локацію."
       );
       return;
     }
 
-    await ctx.reply(
-      "Додай опис події! Розкажи деталі або зроби цікавий анонс :)"
-    );
+    await ctx.reply("Додай опис події!\nНапиши цікавий анонс");
 
     return ctx.wizard.next();
   },
@@ -167,7 +165,7 @@ const createEventScene = new Scenes.WizardScene(
     }
     // Check if we have text for description
     if (!ctx.message || !ctx.message.text) {
-      await ctx.reply("Потрібен опис події – будь ласка, додай опис.", {
+      await ctx.reply("Потрібен опис події. Будь ласка, додай опис.", {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
           Markup.button.callback("🔄 Почати спочатку", "restart_creation"),
@@ -251,8 +249,9 @@ createEventScene.action("confirm_event", async (ctx) => {
 
       await ctx.answerCbQuery();
       await ctx.reply(
-        "Твоя подія створена і відправлена на підтвердження адмінам! 🎉\n" +
-          "Вона опублікується в каналі, коли буде підтверджена.",
+        "Подія створена і буде опублікована після підтвердження адмінами в гілці «Події» в чаті froggy friends ✨\n\n" +
+          "Твоя справжність — твій найкращий вибір. До зустрічі ✌️ \n" +
+          "🐸",
         Markup.removeKeyboard()
       );
     } else {
@@ -325,7 +324,9 @@ createEventScene.action("restart_creation", async (ctx) => {
   }
 
   await ctx.answerCbQuery("Починаємо спочатку");
-  await ctx.reply("Давай організуємо нову зустріч! 🎉\n\nЩо організовуємо?");
+  await ctx.reply(
+    "Давай організуємо нову зустріч! 🎉\n\nЯк ти хочеш назвати подію? \nВведи назву"
+  );
   ctx.wizard.state.eventData = {};
   ctx.wizard.selectStep(1);
   return;

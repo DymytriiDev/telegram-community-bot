@@ -78,23 +78,27 @@ bot.command("events", isGroupMember, async (ctx) => {
     await ctx.scene.leave();
   }
 
-  try {
-    const events = await getUpcomingEvents();
+  // try {
+  //   const events = await getUpcomingEvents();
 
-    if (events.length === 0) {
-      return ctx.reply("Немає майбутніх подій. Створи нову з /create!");
-    }
+  //   if (events.length === 0) {
+  //     return ctx.reply("Немає майбутніх подій. Створи нову з /create!");
+  //   }
 
-    await ctx.reply(`${events.length} подій незабаром:`);
+  //   await ctx.reply(`${events.length} подій незабаром:`);
 
-    // Send each event as a separate message
-    for (const event of events) {
-      await ctx.reply(formatEvent(event), { parse_mode: "HTML" });
-    }
-  } catch (error) {
-    console.error("Error fetching upcoming events:", error);
-    await ctx.reply(errorMsg);
-  }
+  //   // Send each event as a separate message
+  //   for (const event of events) {
+  //     await ctx.reply(formatEvent(event), { parse_mode: "HTML" });
+  //   }
+  // } catch (error) {
+  //   console.error("Error fetching upcoming events:", error);
+  //   await ctx.reply(errorMsg);
+  // }
+
+  return ctx.reply(
+    "Голосуй в гілці «Події» в нашому чаті 🐸, щоб приєднатися до актуальних подій"
+  );
 });
 
 // Past events command - shows archived events
@@ -137,7 +141,7 @@ bot.command("leaderboard", isGroupMember, async (ctx) => {
       return ctx.reply("Ще не створено жодної події.");
     }
 
-    let message = "🏆 Топ організаторів подій 🏆\n\n";
+    let message = "Улюблені Frogga 🐸\n";
 
     leaders.forEach((user, index) => {
       const medal =
