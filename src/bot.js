@@ -1,13 +1,9 @@
 const { Telegraf, Scenes, session } = require("telegraf");
-const { message } = require("telegraf/filters");
 require("dotenv").config();
 
 const { connectToDatabase } = require("./db/connection");
 const { createEventScene } = require("./scenes/createEvent");
-const { getUpcomingEvents } = require("./models/event");
-const { getPastEvents } = require("./models/event");
 const { getLeaderboard } = require("./models/user");
-const { formatEvent } = require("./utils/formatters");
 const { setupAdminHandlers } = require("./handlers/adminHandlers");
 const { isGroupMember } = require("./utils/validators");
 const { startMsg, commandsMsg, errorMsg } = require("./message_templates.js");
@@ -78,53 +74,9 @@ bot.command("events", isGroupMember, async (ctx) => {
     await ctx.scene.leave();
   }
 
-  // try {
-  //   const events = await getUpcomingEvents();
-
-  //   if (events.length === 0) {
-  //     return ctx.reply("Немає майбутніх подій. Створи нову з /create!");
-  //   }
-
-  //   await ctx.reply(`${events.length} подій незабаром:`);
-
-  //   // Send each event as a separate message
-  //   for (const event of events) {
-  //     await ctx.reply(formatEvent(event), { parse_mode: "HTML" });
-  //   }
-  // } catch (error) {
-  //   console.error("Error fetching upcoming events:", error);
-  //   await ctx.reply(errorMsg);
-  // }
-
   return ctx.reply(
     "Голосуй в гілці «Події» в нашому чаті 🐸, щоб приєднатися до актуальних подій"
   );
-});
-
-// Past events command - shows archived events
-bot.command("past", isGroupMember, async (ctx) => {
-  // Leave any active scene first
-  if (ctx.scene.current) {
-    await ctx.scene.leave();
-  }
-
-  try {
-    const events = await getPastEvents();
-
-    if (events.length === 0) {
-      return ctx.reply("Немає минулих подій.");
-    }
-
-    await ctx.reply(`Знайдено ${events.length} минулих подій:`);
-
-    // Send each event as a separate message
-    for (const event of events) {
-      await ctx.reply(formatEvent(event), { parse_mode: "HTML" });
-    }
-  } catch (error) {
-    console.error("Error fetching past events:", error);
-    await ctx.reply(errorMsg);
-  }
 });
 
 // Leaderboard command - shows top event creators

@@ -1,12 +1,12 @@
 /**
  * Event model
- * 
+ *
  * Represents an event in the system with title, date, location, and creator information
  */
 
-const { getDb } = require('../db/connection');
+const { getDb } = require("../db/connection");
 
-const COLLECTION_NAME = 'events';
+const COLLECTION_NAME = "events";
 
 /**
  * Create a new event
@@ -28,13 +28,13 @@ const COLLECTION_NAME = 'events';
 async function createEvent(eventData) {
   const db = getDb();
   const collection = db.collection(COLLECTION_NAME);
-  
+
   const event = {
     ...eventData,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
-  
+
   const result = await collection.insertOne(event);
   return { ...event, _id: result.insertedId };
 }
@@ -47,7 +47,7 @@ async function createEvent(eventData) {
 async function getEventById(id) {
   const db = getDb();
   const collection = db.collection(COLLECTION_NAME);
-  
+
   return collection.findOne({ _id: id });
 }
 
@@ -60,46 +60,14 @@ async function getEventById(id) {
 async function updateEvent(id, updateData) {
   const db = getDb();
   const collection = db.collection(COLLECTION_NAME);
-  
+
   const update = {
     ...updateData,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
-  
+
   await collection.updateOne({ _id: id }, { $set: update });
   return getEventById(id);
-}
-
-/**
- * Get upcoming events
- * @returns {Promise<Array>} Array of upcoming events
- */
-async function getUpcomingEvents() {
-  const db = getDb();
-  const collection = db.collection(COLLECTION_NAME);
-  
-  const now = new Date();
-  
-  return collection.find({
-    date: { $gte: now },
-    approved: true
-  }).sort({ date: 1 }).toArray();
-}
-
-/**
- * Get past events
- * @returns {Promise<Array>} Array of past events
- */
-async function getPastEvents() {
-  const db = getDb();
-  const collection = db.collection(COLLECTION_NAME);
-  
-  const now = new Date();
-  
-  return collection.find({
-    date: { $lt: now },
-    approved: true
-  }).sort({ date: -1 }).toArray();
 }
 
 /**
@@ -110,7 +78,7 @@ async function getPastEvents() {
 async function deleteEvent(id) {
   const db = getDb();
   const collection = db.collection(COLLECTION_NAME);
-  
+
   const result = await collection.deleteOne({ _id: id });
   return result.deletedCount > 0;
 }
@@ -119,7 +87,5 @@ module.exports = {
   createEvent,
   getEventById,
   updateEvent,
-  getUpcomingEvents,
-  getPastEvents,
-  deleteEvent
+  deleteEvent,
 };
