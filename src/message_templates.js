@@ -1,7 +1,6 @@
 const commandsMsg =
   "/events - Найближчі події\n" +
   "/create - Створи подію\n" +
-  "/past - Подивись, що було раніше\n" +
   "/leaderboard - Улюблені Frogga\n" +
   "/restart - Перезапусти Frogga, якщо щось не так";
 
